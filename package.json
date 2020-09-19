@@ -1,0 +1,28 @@
+{
+  "name": "mailgun-scheduler",
+  "version": "0.0.1",
+  "description": "A Node.js library for sending scheduled emails.",
+  "main": "lib/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc",
+    "format": "prettier --write \"src/**/*.ts\" \"src/**/*.js\"",
+    "lint": "tslint -p tsconfig.json"
+  },
+  "author": "Emma Williams",
+  "license": "ISC",
+  "files": [
+    "lib/**/*"
+  ],
+  "dependencies": {
+    "mailgun-js": "^0.22.0"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^4.1.1",
+    "@typescript-eslint/parser": "^4.1.1",
+    "eslint": "^7.9.0",
+    "eslint-config-prettier": "^6.11.0",
+    "prettier": "^2.1.2",
+    "typescript": "^4.0.3"
+  }
+}
