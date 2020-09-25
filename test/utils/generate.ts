@@ -7,8 +7,8 @@ import mailgunScheduler, {
 } from "../../";
 
 export const getEmails = {
-  to: "emma@bocuma.com",
-  from: "kathy@probadge.com",
+  to: "toemail@domain.com",
+  from: "fromemail@domain.com",
 };
 
 export const buildTemplates = (total = 3): EmailTemplate[] => {
