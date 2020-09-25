@@ -5,7 +5,7 @@ import {
   getEmails,
   buildWebhook,
   buildTemplates,
-} from "../test/utils/generate";
+} from "../../test/utils/generate";
 
 /* Test set up */
 

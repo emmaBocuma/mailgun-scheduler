@@ -1,5 +1,5 @@
 import * as mailgun from "mailgun-js";
-import { getDelayedDate } from "./utils";
+import { getDelayedDate } from "./utils/date";
 
 export const SCHEDULING_STAGE_KEY = "v:stage";
 

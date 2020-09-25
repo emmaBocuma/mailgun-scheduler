@@ -1,4 +1,4 @@
-import { getDelayedDate } from "..";
+import { getDelayedDate } from "../date";
 
 describe("Utils tests", () => {
   let spy: jest.SpyInstance;
