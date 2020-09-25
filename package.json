@@ -3,12 +3,14 @@
   "version": "0.0.1",
   "description": "A Node.js library for sending scheduled emails with Mailgun.",
   "main": "lib/index.js",
+  "types": "lib/index.d.ts",
   "repository": {
     "type": "git",
     "url": "https://github.com/emmaBocuma/mailgun-scheduler"
   },
   "scripts": {
     "test": "jest --watchAll",
+    "prepublish": "npm run build",
     "build": "npm run build:clean && tsc",
     "build:clean": "rimraf lib",
     "watch": "tsc --watch",

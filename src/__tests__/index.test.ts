@@ -1,5 +1,6 @@
 import * as mailgun from "mailgun-js";
-import { Scheduler, EmailTemplate, SCHEDULING_STAGE_KEY } from "../index";
+import { SCHEDULING_STAGE_KEY } from "../common/constants";
+import { Scheduler, EmailTemplate } from "../common/types";
 import {
   buildScheduler,
   getEmails,
