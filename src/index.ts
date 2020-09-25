@@ -1,7 +1,7 @@
-import * as mailgun from "mailgun-js";
-
+import mailgun from "mailgun-js";
 import { getDelayedDate } from "./utils/date";
-import { SCHEDULING_STAGE_KEY } from "./common/constants";
+import { validateArgs } from "./utils/validate";
+import { SCHEDULING_STAGE_KEY, PACKAGE_NAME } from "./common/constants";
 import {
   ConstructorParams,
   Scheduler,
@@ -10,6 +10,8 @@ import {
 } from "./common/types";
 
 const mailgunScheduler = (options: ConstructorParams): Scheduler => {
+  validateArgs(options);
+
   const {
     templates,
     to,
@@ -37,7 +39,9 @@ const mailgunScheduler = (options: ConstructorParams): Scheduler => {
         : true;
 
       if (!validationPassed) {
-        return new Error("Webhook not validated: invalid signature.");
+        return new Error(
+          `${PACKAGE_NAME}: Webhook not validated; invalid signature.`,
+        );
       }
 
       const data: EventHook = payload["event-data"];

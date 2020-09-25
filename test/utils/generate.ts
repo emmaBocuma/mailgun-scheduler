@@ -1,10 +1,11 @@
-import mailgunScheduler, {
+import mailgunScheduler from "../../src";
+import {
   Scheduler,
   Signature,
   WebhookPayload,
-  SCHEDULING_STAGE_KEY,
   EmailTemplate,
-} from "../../";
+} from "../../src/common/types";
+import { SCHEDULING_STAGE_KEY } from "../../src/common/constants";
 
 export const getEmails = {
   to: "toemail@domain.com",

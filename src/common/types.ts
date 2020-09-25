@@ -8,17 +8,17 @@ export interface EmailTemplate {
 }
 
 export interface ConstructorParams {
+  [key: string]: unknown;
   apiKey: string;
   domain: string;
-  endpoint?: string;
-  host?: string;
   templates: EmailTemplate[];
   to: string;
   from: string;
   delay: number;
-  webhookUrl: string;
   initialDelay?: boolean;
   validateWebhooks?: boolean;
+  endpoint?: string;
+  host?: string;
 }
 
 export interface Scheduler {

@@ -1,4 +1,6 @@
-import * as mailgun from "mailgun-js";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import mailgun from "mailgun-js";
+import mailgunScheduler from "../../src";
 import { SCHEDULING_STAGE_KEY } from "../common/constants";
 import { Scheduler, EmailTemplate } from "../common/types";
 import {
@@ -40,6 +42,24 @@ afterEach(() => {
 });
 
 /* Start tests */
+
+test("scheduler throws error with invalid constructor args", async () => {
+  expect(
+    () => (scheduler = mailgunScheduler({} as any)),
+  ).toThrowErrorMatchingInlineSnapshot(
+    `"Mailgun Scheduler: apiKey must be defined"`,
+  );
+
+  expect(
+    () => (scheduler = mailgunScheduler({ apiKey: "", to: "" } as any)),
+  ).toThrowErrorMatchingInlineSnapshot(
+    `"Mailgun Scheduler: templates must be defined"`,
+  );
+});
+
+test("scheduler throws no error with valid constructor args", async () => {
+  expect(() => (scheduler = buildScheduler())).not.toThrowError();
+});
 
 test("scheduler sends expected data", async () => {
   let templates: EmailTemplate[] = [
@@ -85,7 +105,7 @@ test("scheduler handleWebhook returns error if webhook signature is not valid", 
   scheduler = buildScheduler({ validateWebhooks: true });
   const res = await scheduler.handleWebhook(buildWebhook());
   expect(res).toMatchInlineSnapshot(
-    `[Error: Webhook not validated: invalid signature.]`,
+    `[Error: Mailgun Scheduler: Webhook not validated; invalid signature.]`,
   );
 });
 
