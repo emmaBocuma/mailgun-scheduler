@@ -5,31 +5,28 @@ import { SCHEDULING_STAGE_KEY, PACKAGE_NAME } from "./common/constants";
 import {
   ConstructorParams,
   Scheduler,
-  WebhookPayload,
   EventHook,
+  EmailParams,
+  SendParams,
+  WebhookHandlerParams,
 } from "./common/types";
 
 const mailgunScheduler = (options: ConstructorParams): Scheduler => {
   validateArgs(options);
 
-  const {
-    templates,
-    to,
-    from,
-    delay,
-    initialDelay,
-    validateWebhooks,
-    ...mailgunOptions
-  } = options;
+  const { validateWebhooks, ...mailgunOptions } = options;
   const mailgunInstance = mailgun(mailgunOptions);
 
   const scheduler: Scheduler = {
-    start: () => {
-      scheduler.send(0, initialDelay);
+    start: (props: EmailParams) => {
+      scheduler.send({ ...props, stage: 0 });
     },
 
-    handleWebhook: async (payload: WebhookPayload) => {
-      const { timestamp, token, signature } = payload.signature;
+    handleWebhook: async (props: WebhookHandlerParams) => {
+      const { timestamp, token, signature } = props.payload.signature;
+      const { to, from } = props.payload["event-data"].message.headers;
+      const { delay, templates } = props;
+
       const validationPassed = validateWebhooks
         ? await mailgunInstance.validateWebhook(
             parseInt(timestamp),
@@ -44,16 +41,23 @@ const mailgunScheduler = (options: ConstructorParams): Scheduler => {
         );
       }
 
-      const data: EventHook = payload["event-data"];
+      const data: EventHook = props.payload["event-data"];
       const stage: number = data["user-variables"]?.[SCHEDULING_STAGE_KEY];
-      if (stage != null && stage < templates.length - 1) {
-        const res = await scheduler.send(stage + 1, true);
+      if (stage != null && stage < props.templates.length - 1) {
+        const res = await scheduler.send({
+          to,
+          from,
+          delay,
+          templates,
+          stage: stage + 1,
+        });
         return res;
       }
       return data;
     },
 
-    send: async (stage, scheduled = false) => {
+    send: async (props: SendParams) => {
+      const { to, from, delay, templates, stage } = props;
       const { subject, text, html } = templates[stage];
 
       const res = await mailgunInstance.messages().send(
@@ -63,7 +67,7 @@ const mailgunScheduler = (options: ConstructorParams): Scheduler => {
           subject,
           ...(text && { text }),
           ...(html && { html }),
-          ...(scheduled && { "o:deliverytime": getDelayedDate(delay) }),
+          ...(delay && { "o:deliverytime": getDelayedDate(delay) }),
           [SCHEDULING_STAGE_KEY]: stage,
         },
         (error: mailgun.Error, body: mailgun.messages.SendResponse) =>
@@ -71,8 +75,6 @@ const mailgunScheduler = (options: ConstructorParams): Scheduler => {
       );
       return res;
     },
-
-    mailgun: () => mailgunInstance,
   };
 
   return scheduler;

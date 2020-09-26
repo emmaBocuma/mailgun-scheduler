@@ -19,4 +19,12 @@ describe("Utils tests", () => {
 
     expect(date).toBe((now.getTime() / 1000 + delayAmt).toString());
   });
+
+  test("getDelayedDate returns error if delay is too big", () => {
+    const delayAmt = 60 * 60 * 24 * 4;
+
+    expect(() => getDelayedDate(delayAmt)).toThrowErrorMatchingInlineSnapshot(
+      `"Delay is to big -  Mailgun service states messages can be scheduled a maximum of 3 days in the future."`,
+    );
+  });
 });

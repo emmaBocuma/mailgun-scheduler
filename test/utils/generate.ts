@@ -4,6 +4,7 @@ import {
   Signature,
   WebhookPayload,
   EmailTemplate,
+  EmailParams,
 } from "../../src/common/types";
 import { SCHEDULING_STAGE_KEY } from "../../src/common/constants";
 
@@ -23,14 +24,20 @@ export const buildTemplates = (total = 3): EmailTemplate[] => {
   return templates;
 };
 
+export const buildEmailParams = (overrides = {}): EmailParams => {
+  return {
+    to: "toemail@domain.com",
+    from: "fromemail@domain.com",
+    delay: 60,
+    templates: buildTemplates(),
+    ...overrides,
+  };
+};
+
 export const buildScheduler = (overrides = {}): Scheduler => {
   return mailgunScheduler({
     apiKey: "MOCK_API",
     domain: "MOCK_DOMAIN",
-    templates: buildTemplates(),
-    delay: 60,
-    webhookUrl: "",
-    ...getEmails,
     ...overrides,
   });
 };
@@ -44,10 +51,16 @@ export const buildSignature = (overrides = {}): Signature => {
   };
 };
 
-export const buildWebhook = (overrides = {}): WebhookPayload => {
+export const buildWebhookPayload = (overrides = {}): WebhookPayload => {
   return {
     signature: buildSignature(),
     "event-data": {
+      message: {
+        headers: {
+          to: "toemail@example.com",
+          from: "fromemail@example.com",
+        },
+      },
       ["user-variables"]: {
         [SCHEDULING_STAGE_KEY]: 0,
       },
