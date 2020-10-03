@@ -62,7 +62,7 @@ export const buildWebhookPayload = (overrides = {}): WebhookPayload => {
         },
       },
       ["user-variables"]: {
-        [SCHEDULING_STAGE_KEY]: 0,
+        [SCHEDULING_STAGE_KEY]: "0",
       },
     },
     ...overrides,

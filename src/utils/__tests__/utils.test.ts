@@ -24,7 +24,7 @@ describe("Utils tests", () => {
     const delayAmt = 60 * 60 * 24 * 4;
 
     expect(() => getDelayedDate(delayAmt)).toThrowErrorMatchingInlineSnapshot(
-      `"Delay is to big -  Mailgun service states messages can be scheduled a maximum of 3 days in the future."`,
+      `"Mailgun Scheduler: Delay is too big -  Mailgun service states messages can be scheduled a maximum of 3 days in the future."`,
     );
   });
 });

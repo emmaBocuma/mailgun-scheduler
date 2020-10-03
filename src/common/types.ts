@@ -1,3 +1,4 @@
+import mailgun from "mailgun-js";
 import { SCHEDULING_STAGE_KEY } from "./constants";
 
 export interface EmailTemplate {
@@ -10,7 +11,8 @@ export interface EmailParams {
   to: string;
   from: string;
   templates: EmailTemplate[];
-  delay?: number;
+  delay: number;
+  customVars?: { [key: string]: unknown }[];
 }
 
 export interface SendParams extends EmailParams {
@@ -33,7 +35,7 @@ export interface EventHook {
   };
   ["user-variables"]: {
     [key: string]: unknown;
-    [SCHEDULING_STAGE_KEY]: number;
+    [SCHEDULING_STAGE_KEY]: string;
   };
 }
 
@@ -64,7 +66,9 @@ export interface ConstructorParams {
 }
 
 export interface Scheduler {
-  send: (props: SendParams) => void;
-  start: (props: EmailParams) => void;
-  handleWebhook: (props: WebhookHandlerParams) => void;
+  send: (props: SendParams) => Promise<mailgun.messages.SendData>;
+  start: (props: EmailParams) => Promise<mailgun.messages.SendData>;
+  handleWebhook: (
+    props: WebhookHandlerParams,
+  ) => Promise<mailgun.messages.SendData | null>;
 }

@@ -75,28 +75,53 @@ test("scheduler sends expected data", async () => {
   const { to, from, delay } = mockData;
   const { subject, text } = mockData.templates[0];
 
-  expect(
-    (mockedMailgun.messages().send as jest.Mock).mock.calls[0][0],
-  ).toMatchObject({
-    to,
-    from,
-    subject,
-    text,
-    "o:deliverytime": getDelayedDate(delay),
-    [SCHEDULING_STAGE_KEY]: 0,
-  });
+  expect((mockedMailgun.messages().send as jest.Mock).mock.calls[0][0]).toEqual(
+    {
+      to,
+      from,
+      subject,
+      text,
+      "o:deliverytime": getDelayedDate(delay),
+      [`v:${SCHEDULING_STAGE_KEY}`]: 0,
+    },
+  );
 });
 
-test("scheduler handleWebhook returns error if webhook signature is not valid", async () => {
+test("scheduler start() handles custom vars", async () => {
+  scheduler = buildScheduler();
+  const mockData = buildEmailParams();
+  const customVars = { testvar: "test value" };
+  await scheduler.start({ ...mockData, customVars: [customVars] });
+  expect(mockedMailgun.messages().send).toBeCalledTimes(1);
+
+  const { to, from, delay } = mockData;
+  const { subject, text } = mockData.templates[0];
+
+  expect((mockedMailgun.messages().send as jest.Mock).mock.calls[0][0]).toEqual(
+    {
+      to,
+      from,
+      subject,
+      text,
+      "o:deliverytime": getDelayedDate(delay),
+      [`v:${SCHEDULING_STAGE_KEY}`]: 0,
+      "v:testvar": "test value",
+    },
+  );
+});
+
+test("scheduler handleWebhook throw error if webhook signature is not valid", async () => {
   mockedMailgun.validateWebhook = () => false;
   scheduler = buildScheduler({ validateWebhooks: true });
-  const res = await scheduler.handleWebhook({
-    delay: 60,
-    templates: buildTemplates(1),
-    payload: buildWebhookPayload(),
-  });
-  expect(res).toMatchInlineSnapshot(
-    `[Error: Mailgun Scheduler: Webhook not validated; invalid signature.]`,
+
+  await expect(
+    scheduler.handleWebhook({
+      delay: 60,
+      templates: buildTemplates(1),
+      payload: buildWebhookPayload(),
+    }),
+  ).rejects.toThrowErrorMatchingInlineSnapshot(
+    `"Mailgun Scheduler: Webhook not validated; invalid signature."`,
   );
 });
 
@@ -115,7 +140,7 @@ test("scheduler handleWebhook does not call send if no next template", async () 
   jest.clearAllMocks();
 
   templates = buildTemplates(2);
-  webhook["event-data"]["user-variables"][SCHEDULING_STAGE_KEY] = 1;
+  webhook["event-data"]["user-variables"][SCHEDULING_STAGE_KEY] = "1";
   await scheduler.handleWebhook({
     delay: 60,
     templates,
@@ -132,6 +157,7 @@ test("scheduler handleWebhook returns correct data", async () => {
     { subject: "Email 2", text: "Email 2 text" },
   ];
   const delay = 120;
+  const customVar = { testvar1: "test value 1", testvar2: "test value 2" };
   scheduler = buildScheduler();
   await scheduler.handleWebhook({
     templates,
@@ -146,6 +172,7 @@ test("scheduler handleWebhook returns correct data", async () => {
         },
         ["user-variables"]: {
           [SCHEDULING_STAGE_KEY]: 0,
+          ...customVar,
         },
       },
     }),
@@ -153,14 +180,57 @@ test("scheduler handleWebhook returns correct data", async () => {
 
   expect(mockedMailgun.messages().send).toBeCalledTimes(1);
   const { subject, text } = templates[1];
-  expect(
-    (mockedMailgun.messages().send as jest.Mock).mock.calls[0][0],
-  ).toMatchObject({
+  expect((mockedMailgun.messages().send as jest.Mock).mock.calls[0][0]).toEqual(
+    {
+      to,
+      from,
+      subject,
+      text,
+      [`v:${SCHEDULING_STAGE_KEY}`]: 1,
+      "v:testvar1": "test value 1",
+      "v:testvar2": "test value 2",
+      "o:deliverytime": (now.getTime() / 1000 + delay).toString(),
+    },
+  );
+});
+
+test("scheduler send() throws error if mailgun-js fails", async () => {
+  (mockedMailgun.messages().send as jest.Mock).mockImplementationOnce(() => {
+    throw new Error("Fail");
+  });
+  scheduler = buildScheduler();
+
+  await expect(
+    scheduler.send({ ...buildEmailParams(), stage: 0 }),
+  ).rejects.toThrowErrorMatchingInlineSnapshot(
+    `"Mailgun Scheduler: Mailgun errored while trying to send: Fail"`,
+  );
+});
+
+test("scheduler send() returns send data", async () => {
+  scheduler = buildScheduler();
+  const res = await scheduler.send({ ...buildEmailParams(), stage: 0 });
+  const { to, from, templates } = buildEmailParams();
+  expect(res).toEqual({
     to,
     from,
-    subject,
-    text,
-    [SCHEDULING_STAGE_KEY]: 1,
-    "o:deliverytime": (now.getTime() / 1000 + delay).toString(),
+    subject: templates[0].subject,
+    text: templates[0].text,
+    "v:stage": 0,
+    "o:deliverytime": "1587550890",
+  });
+});
+
+test("scheduler start() returns send data", async () => {
+  scheduler = buildScheduler();
+  const res = await scheduler.start({ ...buildEmailParams() });
+  const { to, from, templates } = buildEmailParams();
+  expect(res).toEqual({
+    to,
+    from,
+    subject: templates[0].subject,
+    text: templates[0].text,
+    "v:stage": 0,
+    "o:deliverytime": "1587550890",
   });
 });

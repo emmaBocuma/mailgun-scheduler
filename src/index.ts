@@ -19,14 +19,22 @@ const mailgunScheduler = (options: ConstructorParams): Scheduler => {
 
   const scheduler: Scheduler = {
     start: (props: EmailParams) => {
-      scheduler.send({ ...props, stage: 0 });
+      return scheduler.send({ ...props, stage: 0 });
     },
 
     handleWebhook: async (props: WebhookHandlerParams) => {
-      const { timestamp, token, signature } = props.payload.signature;
-      const { to, from } = props.payload["event-data"].message.headers;
-      const { delay, templates } = props;
+      if (!props?.payload?.signature || !props?.payload?.["event-data"]) {
+        throw new Error(
+          `${PACKAGE_NAME}: Webhook does not have expected structure.`,
+        );
+      }
+      if (!props?.delay || !props?.templates) {
+        throw new Error(
+          `${PACKAGE_NAME}: Webhook requires 'delay' and 'templates' params.`,
+        );
+      }
 
+      const { timestamp, token, signature } = props.payload.signature;
       const validationPassed = validateWebhooks
         ? await mailgunInstance.validateWebhook(
             parseInt(timestamp),
@@ -36,44 +44,68 @@ const mailgunScheduler = (options: ConstructorParams): Scheduler => {
         : true;
 
       if (!validationPassed) {
-        return new Error(
+        throw new Error(
           `${PACKAGE_NAME}: Webhook not validated; invalid signature.`,
         );
       }
 
+      const { to, from } = props.payload["event-data"].message.headers;
+      const { delay, templates } = props;
       const data: EventHook = props.payload["event-data"];
-      const stage: number = data["user-variables"]?.[SCHEDULING_STAGE_KEY];
-      if (stage != null && stage < props.templates.length - 1) {
+      const stage: number = parseInt(
+        data["user-variables"]?.[SCHEDULING_STAGE_KEY],
+      );
+
+      if (stage != null && stage < templates.length - 1) {
+        const customVars = Object.entries(data["user-variables"]).filter(
+          ([key]) => key !== SCHEDULING_STAGE_KEY,
+        );
+        const returnCustomVars: { [key: string]: unknown }[] = [];
+        customVars.forEach(([key, value]) => {
+          returnCustomVars.push({ [key]: value });
+        });
         const res = await scheduler.send({
           to,
           from,
           delay,
           templates,
           stage: stage + 1,
+          customVars: returnCustomVars,
         });
         return res;
       }
-      return data;
+      return null;
     },
 
     send: async (props: SendParams) => {
-      const { to, from, delay, templates, stage } = props;
+      const { to, from, delay, templates, stage, customVars } = props;
       const { subject, text, html } = templates[stage];
 
-      const res = await mailgunInstance.messages().send(
-        {
-          from,
-          to,
-          subject,
-          ...(text && { text }),
-          ...(html && { html }),
-          ...(delay && { "o:deliverytime": getDelayedDate(delay) }),
-          [SCHEDULING_STAGE_KEY]: stage,
-        },
-        (error: mailgun.Error, body: mailgun.messages.SendResponse) =>
-          error || body,
-      );
-      return res;
+      const vtaggedCustomVars: { [key: string]: unknown } = {};
+      customVars?.forEach((obj) => {
+        const [key, value] = Object.entries(obj)[0];
+        vtaggedCustomVars[`v:${key}`] = value;
+      });
+
+      const sendData = {
+        from,
+        to,
+        subject,
+        ...(text && { text }),
+        ...(html && { html }),
+        ...(delay && { "o:deliverytime": getDelayedDate(delay) }),
+        ...vtaggedCustomVars,
+        [`v:${SCHEDULING_STAGE_KEY}`]: stage,
+      };
+
+      try {
+        await mailgunInstance.messages().send(sendData);
+        return sendData;
+      } catch (err) {
+        throw new Error(
+          `${PACKAGE_NAME}: Mailgun errored while trying to send: ${err.message}`,
+        );
+      }
     },
   };
 
