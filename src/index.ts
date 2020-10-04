@@ -1,4 +1,5 @@
 import mailgun from "mailgun-js";
+import axios from "axios";
 import { getDelayedDate } from "./utils/date";
 import { validateArgs } from "./utils/validate";
 import { SCHEDULING_STAGE_KEY, PACKAGE_NAME } from "./common/constants";
@@ -16,6 +17,12 @@ const mailgunScheduler = (options: ConstructorParams): Scheduler => {
 
   const { validateWebhooks, ...mailgunOptions } = options;
   const mailgunInstance = mailgun(mailgunOptions);
+  const buildURL = () => {
+    const protocol = options.protocol || "https:";
+    const host = options.host || "api.mailgun.net";
+    const endpoint = options.endpoint || "/v3";
+    return `${protocol}//${host}${endpoint}/${options.domain}`;
+  };
 
   const scheduler: Scheduler = {
     start: (props: EmailParams) => {
@@ -105,6 +112,25 @@ const mailgunScheduler = (options: ConstructorParams): Scheduler => {
         throw new Error(
           `${PACKAGE_NAME}: Mailgun errored while trying to send: ${err.message}`,
         );
+      }
+    },
+
+    handleUnsubscribe: async (email: string) => {
+      try {
+        const res = await axios.post(`${buildURL()}/unsubscribes`, null, {
+          auth: {
+            username: "api",
+            password: options.apiKey,
+          },
+          params: {
+            address: email,
+          },
+        });
+
+        return res.status === 200;
+      } catch (err) {
+        console.log(err.message);
+        return false;
       }
     },
   };

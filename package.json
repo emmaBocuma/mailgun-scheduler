@@ -24,6 +24,7 @@
     "lib/**/*"
   ],
   "dependencies": {
+    "axios": "^0.20.0",
     "mailgun-js": "^0.22.0"
   },
   "devDependencies": {

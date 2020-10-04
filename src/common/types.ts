@@ -71,4 +71,5 @@ export interface Scheduler {
   handleWebhook: (
     props: WebhookHandlerParams,
   ) => Promise<mailgun.messages.SendData | null>;
+  handleUnsubscribe: (email: string) => Promise<boolean>;
 }
