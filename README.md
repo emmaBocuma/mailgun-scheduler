@@ -60,12 +60,13 @@ const processMailgunEvent = async (payload) => {
     const eventData = payload["event-data"];
     if (eventData.event === "delivered") {
       // Schedule next email once current email has been delivered
-      await emailService.handleWebhook({
+      return await emailService.handleWebhook({
         delay,
         payload,
         templates,
       });
     }
+    return null;
   } catch (err) {
     console.log(err)
   }
@@ -75,8 +76,7 @@ const processMailgunEvent = async (payload) => {
 // however if you want to unsubscribe an address via the API:
 const manualUnsubscribe = async (email) => {
   try {
-    const res = await scheduler.handleUnsubscribe(email);
-    return res;
+    return await scheduler.handleUnsubscribe(email);
   } catch (err) {
     console.log(err)
   }
