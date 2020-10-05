@@ -10,7 +10,7 @@
   },
   "scripts": {
     "test": "jest --watchAll",
-    "prepublish": "npm run build",
+    "prepublishOnly": "npm run build",
     "build": "npm run build:clean && tsc",
     "build:clean": "rimraf lib",
     "watch": "tsc --watch",
