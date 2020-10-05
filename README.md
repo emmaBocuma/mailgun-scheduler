@@ -66,7 +66,6 @@ const processMailgunEvent = async (payload) => {
         templates,
       });
     }
-    return null;
   } catch (err) {
     console.log(err)
   }

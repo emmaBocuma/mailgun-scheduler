@@ -70,6 +70,6 @@ export interface Scheduler {
   start: (props: EmailParams) => Promise<mailgun.messages.SendData>;
   handleWebhook: (
     props: WebhookHandlerParams,
-  ) => Promise<mailgun.messages.SendData | null>;
+  ) => Promise<mailgun.messages.SendData | undefined>;
   handleUnsubscribe: (email: string) => Promise<boolean>;
 }

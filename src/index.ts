@@ -71,7 +71,7 @@ const mailgunScheduler = (options: ConstructorParams): Scheduler => {
         customVars.forEach(([key, value]) => {
           returnCustomVars.push({ [key]: value });
         });
-        const res = await scheduler.send({
+        return await scheduler.send({
           to,
           from,
           delay,
@@ -79,9 +79,7 @@ const mailgunScheduler = (options: ConstructorParams): Scheduler => {
           stage: stage + 1,
           customVars: returnCustomVars,
         });
-        return res;
       }
-      return null;
     },
 
     send: async (props: SendParams) => {
