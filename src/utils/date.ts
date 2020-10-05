@@ -2,8 +2,8 @@ import { PACKAGE_NAME } from "../common/constants";
 
 export const getDelayedDate = (delay: string | number): string => {
   const checkedDelay = Number(delay);
-  const maxDelayInSecs = 60 * 60 * 24 * 3; // Three days
-  if (checkedDelay >= maxDelayInSecs) {
+  const maxDelayInSecs = 60 * 60 * 24 * 3;
+  if (checkedDelay > maxDelayInSecs) {
     throw new Error(
       `${PACKAGE_NAME}: Delay is too big -  Mailgun service states messages can be scheduled a maximum of 3 days in the future.`,
     );

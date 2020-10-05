@@ -129,8 +129,7 @@ const mailgunScheduler = (options: ConstructorParams): Scheduler => {
 
         return res.status === 200;
       } catch (err) {
-        console.log(err.message);
-        return false;
+        throw new Error(`${PACKAGE_NAME}: Unsubscribe failure: ${err.message}`);
       }
     },
   };
