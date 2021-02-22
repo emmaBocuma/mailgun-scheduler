@@ -67,18 +67,20 @@ test("scheduler sends expected data", async () => {
       text: "Sending html email 1",
     },
   ];
+  const mockBcc = "bcc@domain.com";
   scheduler = buildScheduler();
-  const mockData = buildEmailParams({ templates });
+  const mockData = buildEmailParams({ templates, bcc: mockBcc });
   await scheduler.start(mockData);
   expect(mockedMailgun.messages().send).toBeCalledTimes(1);
 
-  const { to, from, delay } = mockData;
+  const { to, from, bcc, delay } = mockData;
   const { subject, text } = mockData.templates[0];
 
   expect((mockedMailgun.messages().send as jest.Mock).mock.calls[0][0]).toEqual(
     {
       to,
       from,
+      bcc,
       subject,
       text,
       "o:deliverytime": getDelayedDate(delay),
