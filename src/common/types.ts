@@ -8,10 +8,12 @@ export interface EmailTemplate {
 }
 
 export interface EmailParams {
-  to: string;
+  to: string | string[];
   from: string;
   templates: EmailTemplate[];
   delay: number;
+  cc?: string | string[];
+  bcc?: string | string[];
   customVars?: { [key: string]: unknown }[];
 }
 

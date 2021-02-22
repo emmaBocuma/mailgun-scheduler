@@ -83,7 +83,7 @@ const mailgunScheduler = (options: ConstructorParams): Scheduler => {
     },
 
     send: async (props: SendParams) => {
-      const { to, from, delay, templates, stage, customVars } = props;
+      const { delay, templates, stage, customVars, ...mailContacts } = props;
       const { subject, text, html } = templates[stage];
 
       const vtaggedCustomVars: { [key: string]: unknown } = {};
@@ -93,9 +93,8 @@ const mailgunScheduler = (options: ConstructorParams): Scheduler => {
       });
 
       const sendData = {
-        from,
-        to,
         subject,
+        ...mailContacts,
         ...(text && { text }),
         ...(html && { html }),
         ...(delay && { "o:deliverytime": getDelayedDate(delay) }),
