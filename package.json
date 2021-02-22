@@ -9,7 +9,8 @@
     "url": "https://github.com/emmaBocuma/mailgun-scheduler"
   },
   "scripts": {
-    "test": "jest --watchAll",
+    "test": "jest",
+    "test:watch": "jest --watchAll",
     "prepublishOnly": "npm run build",
     "build": "npm run build:clean && tsc",
     "build:clean": "rimraf lib",
