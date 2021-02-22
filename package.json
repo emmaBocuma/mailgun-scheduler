@@ -1,7 +1,7 @@
 {
   "name": "mailgun-scheduler",
   "version": "1.0.1",
-  "description": "A Node.js library for sending scheduled sequential emails with Mailgun.",
+  "description": "A Node.js library for sending scheduled sequential emails with Mailgun",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "repository": {
